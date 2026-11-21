@@ -1,0 +1,54 @@
+{
+  "format": "byo-pop save import table",
+  "version": 1,
+  "doc": "What -importsaves brings over from an original game installed on this computer (platform/SaveImport.cpp, which has this table compiled in). Nothing outside this table is ever taken. A value or file pattern matches without regard to case; '*' stands for any characters inside one path part, '#' for digits. Registry value paths are relative to the game's key and use backslashes; file paths use slashes and are relative to the folder that holds the saves.",
+  "hives": {
+    "vs": "HKEY_CURRENT_USER\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\<WOW6432Node\\><key>: where Windows redirects the writes of a game that was not run as administrator",
+    "hklm": "HKEY_LOCAL_MACHINE\\SOFTWARE\\<WOW6432Node\\><key>: the 32-bit view that a 32-bit original uses",
+    "hkcu": "HKEY_CURRENT_USER\\Software\\<key>"
+  },
+  "valueSets": {
+    "base": ["MusicVolume=dword", "SfxVolume=dword", "Muted=dword", "ScreenMode=dword", "CustomCursors=dword", "WaitForVSync=dword", "PreferredX=dword", "PreferredY=dword"],
+    "app": ["TimesPlayed=dword", "TimesExecuted=dword"]
+  },
+  "skipValues": {
+    "InstallPath": "an installer or registration value, not a save",
+    "FullInstallPath": "an installer or registration value, not a save",
+    "RegisterLink": "an installer or registration value, not a save",
+    "RegisterURL": "an installer or registration value, not a save",
+    "PopCapURL": "an installer or registration value, not a save",
+    "ReferId": "an installer or registration value, not a save",
+    "DownloadId": "an installer or registration value, not a save",
+    "DontUpdate": "an installer or registration value, not a save",
+    "NoPopLink": "an installer or registration value, not a save",
+    "Variation": "an installer or registration value, not a save",
+    "PurchaseId": "an installer or registration value, not a save",
+    "RegCode": "an installer or registration value, not a save",
+    "RegName": "an installer or registration value, not a save",
+    "InstallTag": "an installer or registration value, not a save",
+    "InstallFlags": "an installer or registration value, not a save",
+    "InstallCheck": "an installer or registration value, not a save",
+    "PartnerName": "an installer or registration value, not a save",
+    "RegistryDataLocation": "an installer or registration value, not a save",
+    "InProgress": "the running flag of the original; the port sets its own",
+    "LastVerCheckQueryTime": "the original's update-check time, which the port does not use",
+    "ITSuccess": "the original's Internet test result, which the port does not use",
+    "test": "the original's registry write test",
+    "Test3D\\*": "the original's graphics hardware test",
+    "TotalBooks": "worked out again from the game's scripts at each start",
+    "LastRanVersion": "the version of the original; the port writes its own"
+  },
+  "games": {
+    "rocketmania": {
+      "folder": "Rocket Mania Deluxe", "steam": "Rocket Mania Deluxe",
+      "registry": { "key": "PopCap\\RocketMania", "hives": ["vs", "hklm", "hkcu"], "sets": ["base", "app"],
+        "values": ["LastScoreName=sz", "HintsDisabled=dword", "HintsDisabledFlag#=dword"] },
+      "files": [
+        { "from": "Players/hiscores.dat", "to": "Players/hiscores.dat", "what": "the high scores" },
+        { "from": "Players/savea.dat", "to": "Players/savea.dat", "what": "the classic game in progress" },
+        { "from": "Players/saveb.dat", "to": "Players/saveb.dat", "what": "the arcade game in progress" },
+        { "from": "Players/savec.dat", "to": "Players/savec.dat", "what": "the strategy game in progress" }
+      ]
+    }
+  }
+}

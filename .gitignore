@@ -1,0 +1,17 @@
+# The player's own game files (staged by the game's tools/stage_*_assets.py) and build output
+/assets/
+/build*/
+*.pyc
+__pycache__/
+
+# Android build
+/android/.cache/
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/app/.cxx/
+/android/app/jni/SDL2/
+/android/app/src/main/java/org/libsdl/
+/android/local.properties
+*.jks
+*.keystore

@@ -1,0 +1,104 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+# contents: write is only used to attach the APK to a GitHub release when a v* tag is pushed
+permissions:
+  contents: write
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # The runner image ships an Android SDK; make sure the exact pieces the build asks for are there
+      - name: Android SDK, NDK and CMake
+        run: |
+          set -e
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" --install "platforms;android-34" "build-tools;34.0.0" "ndk;26.3.11579264" "cmake;3.22.1"
+
+      - name: Cache SDL source tarball
+        uses: actions/cache@v4
+        with:
+          path: android/.cache
+          key: sdl-2.32.10-${{ hashFiles('android/fetch-sdl.sh') }}
+
+      - name: Fetch SDL2 source and Java glue
+        run: bash android/fetch-sdl.sh
+
+      # With the ANDROID_KEYSTORE_* secrets set (see ANDROID.md) every build is signed with your key, so a new APK installs
+      # over the old one and keeps the game's imported files. Without them a throwaway key is made: the APK works, but to
+      # install a later build you must uninstall the earlier one first.
+      - name: Signing key
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -e
+          KS="$RUNNER_TEMP/rocket.jks"
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$KS"
+            ALIAS="${KEY_ALIAS:-rocket}"
+            SP="$KS_PASS"
+            KP="${KEY_PASS:-$KS_PASS}"
+          else
+            echo "::warning::No ANDROID_KEYSTORE_* secrets: signing with a throwaway key (see ANDROID.md)."
+            ALIAS=rocket
+            SP="$(openssl rand -hex 12)"
+            KP="$SP"
+            keytool -genkeypair -keystore "$KS" -storepass "$SP" -keypass "$KP" -alias "$ALIAS" \
+              -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Rocket CI"
+          fi
+          {
+            echo "ROCKET_KEYSTORE=$KS"
+            echo "ROCKET_KEYSTORE_PASSWORD=$SP"
+            echo "ROCKET_KEY_ALIAS=$ALIAS"
+            echo "ROCKET_KEY_PASSWORD=$KP"
+          } >> "$GITHUB_ENV"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: wrapper
+
+      - name: Build the APK
+        working-directory: android
+        env:
+          ROCKET_VERSION_NAME: 1.0.${{ github.run_number }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace assembleRelease
+
+      - name: Name the APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk rocket-android.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rocket-android-apk
+          path: rocket-android.apk
+          if-no-files-found: error
+
+      - name: Attach the APK to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: rocket-android.apk

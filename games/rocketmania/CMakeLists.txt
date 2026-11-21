@@ -1,0 +1,17 @@
+# The game: its code (src/) and its test hooks (src/testhooks/: the scripted runs that check a build), on the
+# SexyAppFramework port (framework/, platform/). The exe finds the game's own files by itself (src/main.cpp).
+file(GLOB ROCKETMANIA_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+# Test hooks (-autoplay): test code kept out of the game code (the autoplay bot has its own RNG)
+file(GLOB ROCKETMANIA_TESTHOOK_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/testhooks/*.cpp)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/RocketApp.cpp)
+  add_executable(rocketmania ${ROCKETMANIA_SOURCES} ${ROCKETMANIA_TESTHOOK_SOURCES})
+  target_include_directories(rocketmania PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+  target_link_libraries(rocketmania PRIVATE sexyframework sexycompat2004)
+  if(NOT MSVC)
+    target_compile_options(rocketmania PRIVATE -Wall -Wno-unused-private-field)
+    option(RM_CRASH_REPORT "Rocket Mania: print the address of a crash" OFF)
+    if(RM_CRASH_REPORT)
+      target_compile_definitions(rocketmania PRIVATE RM_CRASH_REPORT)
+    endif()
+  endif()
+endif()
