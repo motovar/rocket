@@ -26,4 +26,7 @@ java_dst="$here/app/src/main/java/org/libsdl/app"
 rm -rf "$java_dst"
 mkdir -p "$java_dst"
 cp "$here"/app/jni/SDL2/android-project/app/src/main/java/org/libsdl/app/*.java "$java_dst/"
+# SDL's sample android-project ships its own (old) Gradle wrapper jar. The build never uses it, and it fails
+# gradle/actions wrapper validation, so drop it.
+find "$here/app/jni/SDL2" -name gradle-wrapper.jar -delete
 echo "SDL2 ${SDL_VERSION} ready."
