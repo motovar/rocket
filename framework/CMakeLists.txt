@@ -2,7 +2,7 @@
 # that every game links. Includes: "SexyAppBase.h" (framework/) and "platform/VFS.h" (the repository
 # root, which holds framework/ and platform/). That root holds games/ too, so nothing but this rule keeps
 # a game from including another game's headers: games include only framework/ and platform/ headers.
-cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH SHARED_ROOT)
+get_filename_component(SHARED_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
 file(GLOB FRAMEWORK_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
   ${SHARED_ROOT}/platform/*.cpp)
