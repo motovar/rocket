@@ -53,7 +53,7 @@ int Sexy::Rand()
 int Sexy::Rand(int range)
 {
 	gRandCount++;
-	return gMTRand.Next((ulong32)range);
+	return gMTRand.Next((uint32_t)range);
 }
 
 float Sexy::Rand(float range)
